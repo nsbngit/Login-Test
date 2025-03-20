@@ -8,8 +8,10 @@ import msal
 import requests
 
 CLIENT_ID = st.secrets["client_id"]
-AUTHORITY = st.secrets["AUTHORITY"]
+AUTHORITY = st.secrets["authority"]
 CLIENT_SECRET = st.secrets["client_secret"]
+SCOPES = st.secrets["scopes"]
+REDIRECT_URI = st.secrets["redirect_uri"]
 
 # MSAL-App initialisieren
 app = msal.ConfidentialClientApplication(

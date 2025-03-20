@@ -7,10 +7,7 @@ import _pages.home as home
 import msal
 import requests
 
-# Konfiguriere die App mit den Werten aus Azure AD
 
-TENANT_ID = "a322e082-36e4-4fc2-93f0-1a83e4903807"
-REDIRECT_URI = "http://localhost:8501"  # Stelle sicher, dass dies mit der in Azure AD registrierten URI übereinstimmt
 
 AUTHORITY = f"https://login.microsoftonline.com/{TENANT_ID}"
 SCOPES = ["User.Read"]
@@ -41,7 +38,7 @@ def login():
         username = token.get('username', 'Unbekannter Benutzer')
         
         st.write(f"Willkommen, {username}!")
-
+        
 # Handle die Authentifizierung
 def handle_auth():
     if "code" in st.query_params:

@@ -7,6 +7,9 @@ import _pages.home as home
 import msal
 import requests
 
+
+
+
 CLIENT_ID = st.secrets["client_id"]
 AUTHORITY = st.secrets["authority"]
 CLIENT_SECRET = st.secrets["client_secret"]

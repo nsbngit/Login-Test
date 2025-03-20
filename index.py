@@ -8,8 +8,7 @@ import msal
 import requests
 
 # Konfiguriere die App mit den Werten aus Azure AD
-CLIENT_ID = "21637a04-5900-4e11-b8fa-bc80532915ad"
-CLIENT_SECRET = "uYq8Q~OJ4F4mBzp~nh_ZqnfU3lxFoXWZXqN70btq"  # Optional, nur für Webanwendungen
+
 TENANT_ID = "a322e082-36e4-4fc2-93f0-1a83e4903807"
 REDIRECT_URI = "http://localhost:8501"  # Stelle sicher, dass dies mit der in Azure AD registrierten URI übereinstimmt
 
@@ -42,7 +41,7 @@ def login():
         username = token.get('username', 'Unbekannter Benutzer')
         
         st.write(f"Willkommen, {username}!")
-        
+
 # Handle die Authentifizierung
 def handle_auth():
     if "code" in st.query_params:

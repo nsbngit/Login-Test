@@ -7,50 +7,56 @@ import _pages.home as home
 import msal
 import requests
 
+st.set_page_config(page_title="Viessmann Clean & Cold Solutions", page_icon="❄️")
+st.sidebar.image('VCCS.png')
 
+# Konfiguriere die App mit den Werten aus Azure AD
+client_id = st.secrets.auth["client_id"]
+client_secret = st.secrets.auth["client_secret"]
+tenant_id = st.secrets.auth["tenant_id"]
+redirect_uri = "http://localhost:8501"  # Stelle sicher, dass dies mit der in Azure AD registrierten URI übereinstimmt
 
-
-CLIENT_ID = st.secrets["client_id"]
-AUTHORITY = st.secrets["authority"]
-CLIENT_SECRET = st.secrets["client_secret"]
-SCOPES = st.secrets["scopes"]
-REDIRECT_URI = st.secrets["redirect_uri"]
+authority = f"https://login.microsoftonline.com/{tenant_id}"
+scopes = ["User.Read"]
 
 # MSAL-App initialisieren
 app = msal.ConfidentialClientApplication(
-    CLIENT_ID, authority=AUTHORITY, client_credential=CLIENT_SECRET
+    client_id, authority=authority, client_credential=client_secret
 )
 
 # Authentifizierungs-URL generieren
 def get_auth_url():
-    return app.get_authorization_request_url(SCOPES, redirect_uri=REDIRECT_URI)
+    return app.get_authorization_request_url(scopes, redirect_uri=redirect_uri)
 
 # Token abrufen
 def get_token_from_code(code):
     result = app.acquire_token_by_authorization_code(
         code,
-        scopes=SCOPES,
-        redirect_uri=REDIRECT_URI
+        scopes=scopes,
+        redirect_uri=redirect_uri
     )
     return result
 
+# Streamlit UI für den Login
 def login():
-    if 'token' in st.session_state:
-        token = st.session_state['token']
-        
-        # Überprüfe, ob der 'username'-Schlüssel im Token existiert
-        username = token.get('username', 'Unbekannter Benutzer')
-        
+    if "token" in st.session_state:
+        username = st.session_state["token"]["id_token_claims"]["preferred_username"]
+        index()
+        st.write("Erfolgreich eingeloggt!")
         st.write(f"Willkommen, {username}!")
-        
+        return True
+    else:
+        return False
+
 # Handle die Authentifizierung
 def handle_auth():
     if "code" in st.query_params:
-        code = st.query_params["code"][0]
+        code = st.query_params["code"]
         token_response = get_token_from_code(code)
         if "access_token" in token_response:
             st.session_state["token"] = token_response
-            st.experimental_rerun()
+            st.rerun()
+
 
     if "token" not in st.session_state:
         auth_url = get_auth_url()
@@ -59,32 +65,26 @@ def handle_auth():
         login()
 
 # Rufe die Authentifizierungsmethoden auf
+
+def index():
+    try:
+        with open('configdata/st_user_credentials.yaml') as file:
+            config = yaml.load(file, Loader=SafeLoader)
+        permission =   config['credentials']['user'][st.session_state['token']["id_token_claims"]["preferred_username"]]['permission']
+
+        page_names_to_funcs = {} 
+        page_names_to_funcs['Home'] = home.home
+        if 'admin' in permission:
+            page_names_to_funcs['tryday'] = try_day.try_day
+        
+        selected_page = st.sidebar.selectbox("Select a task", page_names_to_funcs.keys())
+        page_names_to_funcs[selected_page]()
+    except KeyError:
+        print(f"Keine Berechtigung für E-Mail: {st.session_state['token']["id_token_claims"]["preferred_username"]}")
+        # Setzen Sie eine Standardberechtigung oder handhaben Sie den Fehler entsprechend.git push origin --delete login-test
+
+        permission = None
+
+
+
 handle_auth()
-
-# st.set_page_config(page_title="Viessmann Clean & Cold Solutions", page_icon="❄️")
-# st.sidebar.image('VCCS.png')
-
-# class index():
-
-#     def __init__(self):
-#         try:
-#             with open('configdata/st_user_credentials.yaml') as file:
-#                 self.config = yaml.load(file, Loader=SafeLoader)
-#             self.permission =   self.config['credentials']['user'][st.experimental_user['email']]['permission']
-
-#             self.page_names_to_funcs = {} 
-#             self.page_names_to_funcs['Home'] = home.home
-#             self.set_authorized_pages()
-#             self.selected_page = st.sidebar.selectbox("Select a task", self.page_names_to_funcs.keys())
-#             self.page_names_to_funcs[self.selected_page]()
-#         except KeyError:
-#             print(f"Keine Berechtigung für E-Mail: {st.experimental_user['email']}")
-#             # Setzen Sie eine Standardberechtigung oder handhaben Sie den Fehler entsprechend.git push origin --delete login-test
-
-#             self.permission = None
-
-#     def set_authorized_pages(self):
-#         if 'admin' in self.permission:
-#             self.page_names_to_funcs['tryday'] = try_day.try_day
-
-# index()

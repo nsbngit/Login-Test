@@ -7,10 +7,9 @@ import _pages.home as home
 import msal
 import requests
 
-
-
-AUTHORITY = f"https://login.microsoftonline.com/{TENANT_ID}"
-SCOPES = ["User.Read"]
+CLIENT_ID = st.secrets["client_id"]
+AUTHORITY = st.secrets["AUTHORITY"]
+CLIENT_SECRET = st.secrets["client_secret"]
 
 # MSAL-App initialisieren
 app = msal.ConfidentialClientApplication(
